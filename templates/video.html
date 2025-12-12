@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <title>SAM3 视频标注工具</title> -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="app-container">
+        <nav class="navbar navbar-dark bg-dark">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1">
+                    <i class="bi bi-camera-video"></i> SAM3 视频标注工具
+                </span>
+                <div class="d-flex align-items-center">
+                    <a href="/" class="btn btn-outline-light btn-sm me-2">
+                        <i class="bi bi-image"></i> 图像标注
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="main-content">
+            <!-- 左侧 - 视频控制 -->
+            <div class="left-panel">
+                <div class="panel-header">
+                    <h6><i class="bi bi-film"></i> 视频控制</h6>
+                </div>
+
+                <div class="panel-section">
+                    <label class="form-label small">视频路径</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control" id="videoPath"
+                               placeholder="视频文件或JPEG目录">
+                        <button class="btn btn-primary" onclick="loadVideo()">
+                            <i class="bi bi-folder2-open"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <label class="form-label small">帧列表</label>
+                    <div id="frameList" class="image-list" style="max-height: 300px;">
+                        <div class="empty-state">
+                            <i class="bi bi-film"></i>
+                            <p>请加载视频</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h6><i class="bi bi-people"></i> 跟踪对象</h6>
+                    <div id="objectList" class="annotation-list">
+                        <!-- 对象列表 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中间 - 视频画布 -->
+            <div class="center-panel">
+                <div class="canvas-toolbar">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary btn-sm active"
+                                id="toolPoint" onclick="setVideoTool('point')">
+                            <i class="bi bi-cursor"></i> 点击
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                id="toolText" onclick="setVideoTool('text')">
+                            <i class="bi bi-chat-text"></i> 文本
+                        </button>
+                    </div>
+
+                    <div class="toolbar-separator"></div>
+
+                    <button class="btn btn-outline-success btn-sm" onclick="propagateVideo()">
+                        <i class="bi bi-arrow-right-circle"></i> 传播到全视频
+                    </button>
+
+                    <button class="btn btn-outline-warning btn-sm" onclick="resetSession()">
+                        <i class="bi bi-arrow-counterclockwise"></i> 重置
+                    </button>
+                </div>
+
+                <div class="canvas-container" id="canvasContainer">
+                    <canvas id="videoCanvas"></canvas>
+                    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p id="loadingText">正在处理...</p>
+                    </div>
+                </div>
+
+                <div class="canvas-footer">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="prevFrame()">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+
+                    <input type="range" class="form-range mx-3" id="frameSlider"
+                           min="0" max="100" value="0" style="width: 300px;">
+
+                    <button class="btn btn-outline-secondary btn-sm" onclick="nextFrame()">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+
+                    <span id="frameInfo" class="mx-3">帧: 0/0</span>
+
+                    <button class="btn btn-outline-primary btn-sm" onclick="playPause()">
+                        <i class="bi bi-play-fill" id="playIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 右侧 - 提示输入 -->
+            <div class="right-panel">
+                <div class="panel-section">
+                    <h6><i class="bi bi-chat-text"></i> 文本提示</h6>
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control" id="textPrompt"
+                               placeholder="输入要跟踪的对象...">
+                        <button class="btn btn-primary" onclick="addTextPrompt()">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h6><i class="bi bi-cursor"></i> 点击提示</h6>
+                    <div class="btn-group w-100 mb-2" role="group">
+                        <button type="button" class="btn btn-outline-success btn-sm active"
+                                id="pointPositive" onclick="setPointLabel(true)">
+                            <i class="bi bi-plus-circle"></i> 正样本
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                id="pointNegative" onclick="setPointLabel(false)">
+                            <i class="bi bi-dash-circle"></i> 负样本
+                        </button>
+                    </div>
+                    <small class="text-muted">在画布上点击添加点提示</small>
+                </div>
+
+                <div class="panel-section flex-grow-1">
+                    <h6><i class="bi bi-clock-history"></i> 操作历史</h6>
+                    <div id="historyList" class="annotation-list">
+                        <!-- 历史记录 -->
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <button class="btn btn-success btn-sm w-100 mb-2" onclick="exportVideoAnnotations()">
+                        <i class="bi bi-download"></i> 导出标注
+                    </button>
+                    <button class="btn btn-secondary btn-sm w-100" onclick="closeSession()">
+                        <i class="bi bi-x-circle"></i> 关闭会话
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 视频标注状态
+        const videoState = {
+            sessionId: null,
+            frames: [],
+            currentFrame: 0,
+            objects: {},
+            tool: 'point',
+            pointLabel: true,
+            playing: false,
+            outputs: {}
+        };
+
+        let videoCanvas, videoCtx;
+        let currentFrameImage = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            videoCanvas = document.getElementById('videoCanvas');
+            videoCtx = videoCanvas.getContext('2d');
+
+            videoCanvas.addEventListener('click', onCanvasClick);
+            document.getElementById('frameSlider').addEventListener('input', onSliderChange);
+        });
+
+        function setVideoTool(tool) {
+            videoState.tool = tool;
+            document.querySelectorAll('.canvas-toolbar .btn-group:first-child .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById('tool' + tool.charAt(0).toUpperCase() + tool.slice(1)).classList.add('active');
+        }
+
+        function setPointLabel(isPositive) {
+            videoState.pointLabel = isPositive;
+            document.getElementById('pointPositive').classList.toggle('active', isPositive);
+            document.getElementById('pointNegative').classList.toggle('active', !isPositive);
+        }
+
+        async function loadVideo() {
+            const videoPath = document.getElementById('videoPath').value.trim();
+            if (!videoPath) return;
+
+            showLoading('正在加载视频...');
+
+            try {
+                const response = await fetch('/api/video/start_session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ video_path: videoPath })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    videoState.sessionId = data.session_id;
+                    await loadFrameList(videoPath);
+                    addHistory('加载视频', videoPath);
+                }
+            } catch (error) {
+                alert('加载视频失败: ' + error.message);
+            }
+
+            hideLoading();
+        }
+
+        async function loadFrameList(videoPath) {
+            // 简化处理：假设是JPEG目录
+            const list = document.getElementById('frameList');
+            list.innerHTML = '<div class="text-muted small p-2">视频已加载，使用滑块浏览帧</div>';
+
+            // 设置滑块范围（假设100帧，实际应从后端获取）
+            document.getElementById('frameSlider').max = 100;
+            loadFrame(0);
+        }
+
+        async function loadFrame(index) {
+            videoState.currentFrame = index;
+            document.getElementById('frameSlider').value = index;
+            document.getElementById('frameInfo').textContent = `帧: ${index}`;
+
+            // 这里应该从后端获取帧图像
+            // 简化处理：显示占位符
+            videoCanvas.width = 800;
+            videoCanvas.height = 600;
+            videoCtx.fillStyle = '#1a1a2e';
+            videoCtx.fillRect(0, 0, 800, 600);
+            videoCtx.fillStyle = '#666';
+            videoCtx.font = '20px sans-serif';
+            videoCtx.textAlign = 'center';
+            videoCtx.fillText(`帧 ${index}`, 400, 300);
+
+            // 绘制该帧的分割结果
+            if (videoState.outputs[index]) {
+                drawFrameOutputs(videoState.outputs[index]);
+            }
+        }
+
+        function drawFrameOutputs(outputs) {
+            const colors = ['#e94560', '#4dabf7', '#4ade80', '#fbbf24', '#a78bfa'];
+
+            Object.entries(outputs).forEach(([objId, data], idx) => {
+                if (data.polygon && data.polygon.length > 2) {
+                    videoCtx.fillStyle = colors[idx % colors.length] + '60';
+                    videoCtx.strokeStyle = colors[idx % colors.length];
+                    videoCtx.lineWidth = 2;
+
+                    videoCtx.beginPath();
+                    videoCtx.moveTo(data.polygon[0][0], data.polygon[0][1]);
+                    for (let i = 1; i < data.polygon.length; i++) {
+                        videoCtx.lineTo(data.polygon[i][0], data.polygon[i][1]);
+                    }
+                    videoCtx.closePath();
+                    videoCtx.fill();
+                    videoCtx.stroke();
+                }
+            });
+        }
+
+        function onCanvasClick(e) {
+            if (!videoState.sessionId) return;
+
+            const rect = videoCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (videoState.tool === 'point') {
+                addPointPrompt(x, y);
+            }
+        }
+
+        async function addPointPrompt(x, y) {
+            showLoading('添加点提示...');
+
+            try {
+                const response = await fetch('/api/video/add_prompt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: videoState.sessionId,
+                        frame_index: videoState.currentFrame,
+                        prompt_type: 'points',
+                        prompt_data: {
+                            points: [[x / videoCanvas.width, y / videoCanvas.height]],
+                            labels: [videoState.pointLabel ? 1 : 0]
+                        }
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    videoState.outputs[videoState.currentFrame] = data.results;
+                    loadFrame(videoState.currentFrame);
+                    addHistory('点击提示', `(${x.toFixed(0)}, ${y.toFixed(0)})`);
+                }
+            } catch (error) {
+                alert('添加提示失败: ' + error.message);
+            }
+
+            hideLoading();
+        }
+
+        async function addTextPrompt() {
+            const prompt = document.getElementById('textPrompt').value.trim();
+            if (!prompt || !videoState.sessionId) return;
+
+            showLoading(`分割: ${prompt}...`);
+
+            try {
+                const response = await fetch('/api/video/add_prompt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: videoState.sessionId,
+                        frame_index: videoState.currentFrame,
+                        prompt_type: 'text',
+                        prompt_data: prompt
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    videoState.outputs[videoState.currentFrame] = data.results;
+                    loadFrame(videoState.currentFrame);
+                    updateObjectList(data.results);
+                    addHistory('文本提示', prompt);
+                }
+            } catch (error) {
+                alert('添加提示失败: ' + error.message);
+            }
+
+            hideLoading();
+        }
+
+        async function propagateVideo() {
+            if (!videoState.sessionId) return;
+
+            showLoading('正在传播到全视频...');
+
+            try {
+                const response = await fetch('/api/video/propagate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: videoState.sessionId })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    videoState.outputs = data.results;
+                    loadFrame(videoState.currentFrame);
+                    addHistory('传播完成', `${Object.keys(data.results).length} 帧`);
+                }
+            } catch (error) {
+                alert('传播失败: ' + error.message);
+            }
+
+            hideLoading();
+        }
+
+        async function resetSession() {
+            if (!videoState.sessionId) return;
+
+            videoState.outputs = {};
+            videoState.objects = {};
+            loadFrame(videoState.currentFrame);
+            updateObjectList({});
+            addHistory('重置会话', '');
+        }
+
+        async function closeSession() {
+            if (!videoState.sessionId) return;
+
+            try {
+                await fetch('/api/video/close_session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: videoState.sessionId })
+                });
+
+                videoState.sessionId = null;
+                videoState.outputs = {};
+                addHistory('关闭会话', '');
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function updateObjectList(outputs) {
+            const list = document.getElementById('objectList');
+            const colors = ['#e94560', '#4dabf7', '#4ade80', '#fbbf24', '#a78bfa'];
+
+            if (Object.keys(outputs).length === 0) {
+                list.innerHTML = '<div class="text-muted small p-2">暂无跟踪对象</div>';
+                return;
+            }
+
+            list.innerHTML = Object.entries(outputs).map(([objId, data], idx) => `
+                <div class="annotation-item">
+                    <div class="color-indicator" style="background-color: ${colors[idx % colors.length]}"></div>
+                    <div class="info">
+                        <div class="label">对象 ${objId}</div>
+                        <div class="score">置信度: ${(data.score || 0).toFixed(2)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addHistory(action, detail) {
+            const list = document.getElementById('historyList');
+            const time = new Date().toLocaleTimeString();
+            const item = document.createElement('div');
+            item.className = 'annotation-item';
+            item.innerHTML = `
+                <div class="info">
+                    <div class="label">${action}</div>
+                    <div class="score">${detail} - ${time}</div>
+                </div>
+            `;
+            list.insertBefore(item, list.firstChild);
+        }
+
+        function onSliderChange(e) {
+            loadFrame(parseInt(e.target.value));
+        }
+
+        function prevFrame() {
+            if (videoState.currentFrame > 0) {
+                loadFrame(videoState.currentFrame - 1);
+            }
+        }
+
+        function nextFrame() {
+            loadFrame(videoState.currentFrame + 1);
+        }
+
+        function playPause() {
+            videoState.playing = !videoState.playing;
+            document.getElementById('playIcon').className =
+                videoState.playing ? 'bi bi-pause-fill' : 'bi bi-play-fill';
+
+            if (videoState.playing) {
+                playLoop();
+            }
+        }
+
+        function playLoop() {
+            if (!videoState.playing) return;
+            nextFrame();
+            setTimeout(playLoop, 100);
+        }
+
+        function exportVideoAnnotations() {
+            const data = JSON.stringify(videoState.outputs, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'video_annotations.json';
+            a.click();
+        }
+
+        function showLoading(text) {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

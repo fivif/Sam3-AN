@@ -1,0 +1,335 @@
+# SAM3 AN - 智能数据标注工具
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10+-blue.svg" alt="Python">
+  <img src="https://img.shields.io/badge/PyTorch-2.0+-red.svg" alt="PyTorch">
+  <img src="https://img.shields.io/badge/Flask-2.3+-green.svg" alt="Flask">
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
+</p>
+
+基于 **SAM3 (Segment Anything Model 3)** 的智能数据标注工具，支持图像分割标注。通过文本提示、点击、框选等多种方式快速生成高质量标注数据。
+
+## ✨ 功能特性
+
+### 🖼️ 图像标注
+
+| 功能 | 描述 |
+|------|------|
+| **文本提示分割** | 输入中/英文描述，AI 自动识别并分割目标对象 |
+| **点击分割** | 通过点击添加正/负样本点进行精确分割 |
+| **框选分割** | 绘制边界框指定分割区域，支持正/负样本框 |
+| **手动绘制** | 多边形工具手动绘制标注区域 |
+| **批量分割** | 对多张图片进行批量自动分割 |
+
+### 🎯 正负样本系统
+
+- **正样本 (绿色)**: 指示要分割的目标区域
+- **负样本 (红色)**: 指示要排除的区域，用于精细化分割结果
+- **智能过滤**: 使用 Mask 级别的重叠检测，精确排除不需要的分割结果
+
+### 🤖 AI 翻译功能
+
+- 支持中文输入，自动翻译为英文提示词
+- 兼容 OpenAI API 格式（DeepSeek、通义千问、Moonshot 等）
+- 可配置 API 地址、密钥和模型
+
+### 🎬 视频标注（视频标注暂不支持！！！）
+
+- 文本提示跟踪
+- 点击提示跟踪
+- 全视频传播分割结果
+
+### 📦 数据导出
+
+| 格式 | 说明 |
+|------|------|
+| **YOLO** | 支持 YOLOv5/v8/v11 检测和分割格式 |
+| **COCO** | 标准 COCO 实例分割格式 |
+
+自动按 8:1:1 比例分割 train/val/test 数据集。
+
+## 🚀 快速开始
+
+### 环境要求
+
+- Python 3.10+
+- CUDA 12.6 (推荐，CPU 也可运行但较慢)
+- 8GB+ GPU 显存 (推荐)
+
+### 安装步骤
+
+```bash
+# 1. 进入项目目录
+cd Sam3 an
+
+# 2. 安装 PyTorch 
+pip install torch==2.7.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+
+# 3. 安装所有依赖
+pip install -r requirements.txt
+```
+
+> **注意**: SAM3 核心代码已包含在 `SAM_src/` 目录中，无需额外安装。
+
+### 启动服务
+
+```bash
+python app.py
+```
+
+启动后会自动打开浏览器访问 http://localhost:5000
+
+## 📖 使用指南
+
+### 基本工作流程
+
+```
+创建项目 → 加载图片 → 添加类别 → 标注 → 保存 → 导出
+```
+
+1. **创建项目**: 点击左上角项目名称，选择"项目管理"
+2. **设置目录**: 配置图片目录和输出目录
+3. **添加类别**: 在右侧面板添加标注类别
+4. **开始标注**: 选择工具进行标注
+5. **保存导出**: 保存标注并导出数据集
+
+### 标注工具
+
+#### 文本提示分割 (推荐)
+
+1. 在工具栏输入框中输入目标描述（如 "apple" 或 "苹果"）
+2. 调整置信度阈值（默认 0.5）
+3. 点击"分割"按钮或按 Enter
+
+#### 点击分割
+
+1. 选择"点击"工具
+2. 选择正样本(+)或负样本(-)模式
+3. 在图像上点击目标位置
+4. 点击"分割"按钮执行分割
+
+#### 框选分割
+
+1. 选择"框选"工具
+2. 选择正样本(+)或负样本(-)模式
+3. 在图像上绘制边界框
+4. 可添加多个正/负样本框
+5. 点击"分割"按钮执行分割
+
+#### 手动绘制
+
+1. 选择"多边形"工具
+2. 点击添加多边形顶点
+3. 双击或点击起点闭合多边形
+
+### 正负样本使用技巧
+
+```
+场景：图片中有多个苹果，只想标注其中一个
+
+方法1：框选
+1. 用正样本框(+)框选目标苹果
+2. 用负样本框(-)框选不想要的苹果
+3. 点击分割
+
+方法2：点击
+1. 用正样本点(+)点击目标苹果
+2. 用负样本点(-)点击不想要的苹果
+3. 点击分割
+```
+
+### 批量分割
+
+1. 展开右侧"批量分割"面板
+2. 输入提示词和目标类别
+3. 设置图片范围（起始/结束索引）
+4. 勾选"跳过已标注"保护已有标注
+5. 点击"开始批量分割"
+
+### 快捷键
+
+| 快捷键 | 功能 |
+|--------|------|
+| `←` / `→` | 上一张/下一张图片 |
+| `Ctrl+S` | 保存当前标注 |
+| `Delete` | 删除选中的标注 |
+| `Escape` | 取消当前操作 |
+| `+` / `-` | 放大/缩小 |
+| `0` | 重置缩放 |
+| `F` | 适应窗口 |
+
+## 🏗️ 项目结构
+
+```
+annotation_tool/
+├── app.py                      # Flask 主应用
+├── requirements.txt            # 依赖列表
+├── sam3.pt                     # SAM3 模型权重
+├── README.md                   # 项目文档
+│
+├── services/
+│   ├── sam3_service.py         # SAM3 模型服务封装
+│   └── annotation_manager.py   # 标注数据管理
+│
+├── exports/
+│   ├── yolo_exporter.py        # YOLO 格式导出
+│   └── coco_exporter.py        # COCO 格式导出
+│
+├── templates/
+│   ├── index.html              # 图像标注页面
+│   └── video.html              # 视频标注页面
+│
+├── static/
+│   ├── css/style.css           # 赛博朋克风格样式
+│   └── js/annotation.js        # 前端交互逻辑
+│
+├── data/                       # 项目数据存储
+├── uploads/                    # 上传文件临时目录
+│
+├── SAM_src/                    # SAM3 源码（本地副本）
+
+```
+
+## 🔌 API 接口
+
+### 项目管理
+
+```http
+POST /api/project/create        # 创建项目
+GET  /api/project/<id>          # 获取项目信息
+GET  /api/project/list          # 列出所有项目
+POST /api/project/<id>/update   # 更新项目
+POST /api/project/<id>/delete   # 删除项目
+POST /api/project/<id>/load_images  # 加载图片目录
+```
+
+### 分割
+
+```http
+POST /api/segment/text          # 文本提示分割
+POST /api/segment/point         # 点击分割
+POST /api/segment/box           # 框选分割
+POST /api/segment/batch         # 批量分割
+```
+
+### 标注管理
+
+```http
+POST /api/annotation/save       # 保存标注
+GET  /api/annotation/get        # 获取标注
+POST /api/annotation/update     # 更新标注
+POST /api/annotation/delete     # 删除标注
+```
+
+### 导出
+
+```http
+POST /api/export/yolo           # 导出 YOLO 格式
+POST /api/export/coco           # 导出 COCO 格式
+```
+
+### AI 翻译
+
+```http
+POST /api/ai/translate          # 翻译文本
+POST /api/ai/test               # 测试 API 配置
+```
+
+### 视频
+
+```http
+POST /api/video/start_session   # 开始视频会话
+POST /api/video/add_prompt      # 添加视频提示
+POST /api/video/propagate       # 传播分割
+POST /api/video/close_session   # 关闭会话
+```
+
+## ⚙️ 配置说明
+
+### AI 翻译配置
+
+点击工具栏的 AI 配置按钮（机器人图标）：
+
+| 配置项 | 说明 | 示例 |
+|--------|------|------|
+| API 地址 | OpenAI 格式 API 地址 | `https://api.deepseek.com` |
+| API 密钥 | 你的 API Key | `sk-xxx...` |
+| 模型名称 | 使用的模型 | `deepseek-chat` |
+
+支持的 API 服务：
+- DeepSeek: `https://api.deepseek.com`
+- 通义千问: `https://dashscope.aliyuncs.com/compatible-mode`
+- Moonshot: `https://api.moonshot.cn`
+- OpenAI: `https://api.openai.com`
+
+### 置信度阈值
+
+- 范围: 0.01 - 1.0
+- 默认: 0.5
+- 较高值: 更精确但可能漏检
+- 较低值: 更全面但可能误检
+
+## ❓ 常见问题
+
+### Q: 首次启动很慢？
+A: 首次启动需要加载 SAM3 模型（约 3.2GB），请耐心等待。后续启动会更快。
+
+### Q: 显存不足？
+A: SAM3 需要约 6-8GB 显存。可尝试：
+- 关闭其他 GPU 程序
+- 使用较小的图片
+- 使用 CPU 模式（较慢）
+
+### Q: 分割结果不准确？
+A: 尝试以下方法：
+- 调整置信度阈值
+- 使用更精确的提示词
+- 使用正负样本框/点进行精细化
+- 使用英文提示词（更准确）
+
+### Q: 中文提示词不工作？
+A: 配置 AI 翻译功能，自动将中文翻译为英文。
+
+### Q: 如何批量处理大量图片？
+A: 使用批量分割功能，设置合适的提示词和置信度，可快速处理整个数据集。
+
+## 🛠️ 技术架构
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    前端 (Browser)                        │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
+│  │  Canvas 渲染 │  │  工具栏交互  │  │  标注管理   │     │
+│  └─────────────┘  └─────────────┘  └─────────────┘     │
+└─────────────────────────────────────────────────────────┘
+                           │ HTTP/REST API
+┌─────────────────────────────────────────────────────────┐
+│                   后端 (Flask)                           │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
+│  │  路由处理    │  │  SAM3 服务   │  │  数据管理   │     │
+│  └─────────────┘  └─────────────┘  └─────────────┘     │
+└─────────────────────────────────────────────────────────┘
+                           │
+┌─────────────────────────────────────────────────────────┐
+│                   SAM3 模型层                            │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
+│  │  图像编码器  │  │  文本编码器  │  │  Mask 解码器 │     │
+│  └─────────────┘  └─────────────┘  └─────────────┘     │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 📄 许可证
+
+MIT License
+
+## 🙏 致谢
+
+- [SAM3 - Segment Anything Model 3](https://github.com/facebookresearch/sam3)
+- [Flask](https://flask.palletsprojects.com/)
+- [PyTorch](https://pytorch.org/)
+
+---
+
+<p align="center">
+  need 小 ⭐⭐
+</p>

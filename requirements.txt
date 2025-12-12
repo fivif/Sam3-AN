@@ -1,0 +1,39 @@
+# SAM3 AN - 数据标注工具依赖
+# 安装命令: pip install -r requirements.txt
+
+
+# ==================== Flask Web框架 ====================
+flask>=2.3.0
+flask-cors>=4.0.0
+Werkzeug>=2.3.0
+
+# ==================== 图像处理 ====================
+Pillow>=10.0.0
+opencv-python>=4.8.0
+numpy==1.26
+pandas
+
+# ==================== SAM3 核心依赖 ====================
+timm>=1.0.17
+tqdm
+ftfy==6.1.1
+regex
+iopath>=0.1.10
+typing_extensions
+huggingface_hub
+einops
+decord
+psutil
+
+# ==================== COCO工具 ====================
+pycocotools>=2.0.6
+
+# ==================== 配置文件 ====================
+PyYAML>=6.0
+
+# ==================== HTTP请求 (AI翻译功能) ====================
+requests>=2.28.0
+
+# ==================== Windows Triton 支持 ====================
+# Windows 用户需要安装:
+triton-windows

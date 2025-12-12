@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+*.pyd
+
+.venv/
+venv/
+ENV/
+
+.vscode/
+.idea/
+
+# local/runtime outputs
+uploads/
+*.log
+
+# model weights / large artifacts (do not commit)
+*.pt
+*.pth
+*.ckpt
+*.onnx

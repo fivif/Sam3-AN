@@ -1,0 +1,7 @@
+names:
+  0: xiabo
+nc: 1
+path: C:\Users\fivif\Desktop\PrX\AAA_机械臂视觉\SAM3\sam3\assets\images
+test: images/test
+train: images/train
+val: images/val

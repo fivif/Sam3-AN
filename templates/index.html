@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAM3 AN - 数据标注工具</title>
+    <link rel="icon" type="image/png" href="/static/sam_an.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 移除顶部导航栏，功能整合到左侧面板 -->
+
+        <div class="main-content">
+            <!-- 左侧面板 - 控制中心与图片列表 -->
+            <div class="left-panel" id="leftPanel">
+                <!-- 折叠按钮 -->
+                <div class="panel-collapse-btn" id="leftToggleBtn" onclick="toggleLeftPanel()" title="折叠面板">
+                    <i class="bi bi-chevron-double-left"></i>
+                </div>
+                <!-- 顶部控制区 -->
+                <div class="sidebar-header">
+                    <div class="app-brand">
+                         <img src="/static/sam_an.png" alt="Logo" style="height: 32px; margin-right: 10px; vertical-align: middle;">SAM3 AN
+                    </div>
+                    
+                    <div class="project-info-card">
+                        <div class="project-name" id="projectName" title="当前项目">未选择项目</div>
+                        <div class="project-actions">
+                            <button class="btn btn-xs btn-outline-primary" onclick="showProjectModal()">
+                                <i class="bi bi-folder2-open"></i> 管理
+                            </button>
+                            <button class="btn btn-xs btn-outline-success" onclick="showExportModal()">
+                                <i class="bi bi-download"></i> 导出
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图片列表头 -->
+                <div class="panel-header">
+                    <h6><i class="bi bi-images"></i> 图片列表</h6>
+                    <span id="imageStats" class="badge">0/0</span>
+                </div>
+                
+                <div class="progress-bar-container">
+                    <div class="progress">
+                        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">已标注: 0/0 (0%)</div>
+                </div>
+                
+                <div class="search-box">
+                    <input type="text" class="form-control form-control-sm"
+                           placeholder="搜索图片..." id="imageSearch">
+                </div>
+                
+                <div id="imageList" class="image-list">
+                    <div class="empty-state">
+                        <i class="bi bi-folder2-open"></i>
+                        <p>请先创建或选择项目</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中间 - 标注画布 -->
+            <div class="center-panel">
+                <!-- 展开按钮（面板折叠时显示） -->
+                <div class="panel-expand-btn left" id="leftExpandBtn" onclick="toggleLeftPanel()" title="展开左侧面板">
+                    <i class="bi bi-chevron-double-right"></i>
+                </div>
+                <div class="panel-expand-btn right" id="rightExpandBtn" onclick="toggleRightPanel()" title="展开右侧面板">
+                    <i class="bi bi-chevron-double-left"></i>
+                </div>
+                <div class="canvas-toolbar">
+                    <!-- AI分割工具 -->
+                    <div class="toolbar-group" title="AI分割工具">
+                        <button type="button" class="btn btn-tool active"
+                                id="toolPoint" onclick="setTool('point')" title="点击分割 (P)">
+                            <i class="bi bi-cursor-fill"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool"
+                                id="toolBox" onclick="setTool('box')" title="框选分割 (B)">
+                            <i class="bi bi-bounding-box-circles"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool"
+                                id="toolText" onclick="setTool('text')" title="文本分割 (T)">
+                            <i class="bi bi-chat-square-text-fill"></i>
+                        </button>
+                    </div>
+
+                    <div class="toolbar-separator"></div>
+
+                    <!-- 手动绘制工具 -->
+                    <div class="toolbar-group" title="手动绘制">
+                        <button type="button" class="btn btn-tool manual-tool"
+                                id="toolPolygon" onclick="setTool('polygon')" title="手动绘制多边形 (G)">
+                            <i class="bi bi-hexagon"></i>
+                        </button>
+                    </div>
+
+                    <div class="toolbar-separator"></div>
+
+                    <!-- 编辑工具 -->
+                    <div class="toolbar-group" title="编辑">
+                        <button type="button" class="btn btn-tool"
+                                id="toolEdit" onclick="setTool('edit')" title="选择/编辑 (E)">
+                            <i class="bi bi-hand-index"></i>
+                        </button>
+                    </div>
+
+                    <div class="toolbar-separator"></div>
+
+                    <!-- 正负样本 (仅AI分割时有效) -->
+                    <div class="toolbar-group" id="labelGroup" title="正负样本">
+                        <button type="button" class="btn btn-tool positive active"
+                                id="labelPositive" onclick="setLabel(true)" title="正样本">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool negative"
+                                id="labelNegative" onclick="setLabel(false)" title="负样本">
+                            <i class="bi bi-dash-lg"></i>
+                        </button>
+                    </div>
+
+                    <div class="toolbar-separator"></div>
+
+                    <!-- 置信度 (仅AI分割时有效) -->
+                    <div class="slider-group" id="confidenceGroup">
+                        <i class="bi bi-bullseye small-icon"></i>
+                        <input type="range" class="form-range custom-range" id="confidenceSlider"
+                               min="0" max="100" value="50">
+                        <span id="confidenceValue" class="value-display">0.50</span>
+                    </div>
+
+                    <div class="toolbar-separator"></div>
+
+                    <!-- 分割操作按钮 -->
+                    <button class="btn btn-segment" onclick="segmentManual()" title="执行分割">
+                        <i class="bi bi-cpu"></i> 分割
+                    </button>
+                    <button class="btn btn-tool" onclick="clearTempPrompts()" title="清除临时标记">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+
+                    <div class="ms-auto d-flex gap-2">
+                        <button class="btn btn-tool" onclick="fitToView()" title="适应视图">
+                            <i class="bi bi-fullscreen"></i>
+                        </button>
+                        <button class="btn btn-tool" onclick="zoomOut()" title="缩小">
+                            <i class="bi bi-dash"></i>
+                        </button>
+                        <button class="btn btn-tool" onclick="resetZoom()" title="100%">
+                            <span class="small-text">100%</span>
+                        </button>
+                        <button class="btn btn-tool" onclick="zoomIn()" title="放大">
+                            <i class="bi bi-plus"></i>
+                        </button>
+
+                        <div class="toolbar-separator"></div>
+
+                        <!-- AI翻译配置 -->
+                        <button class="btn btn-tool ai-config-btn" id="aiConfigBtn" onclick="showAIConfigModal()" title="AI翻译配置">
+                            <i class="bi bi-translate"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="canvas-container" id="canvasContainer">
+                    <div class="canvas-wrapper" id="canvasWrapper">
+                        <canvas id="annotationCanvas"></canvas>
+                    </div>
+                </div>
+
+                <div class="canvas-footer">
+                    <button class="btn btn-secondary btn-sm" onclick="prevImage()">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span id="currentImageInfo" class="image-info">-</span>
+                    <button class="btn btn-secondary btn-sm" onclick="nextImage()">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-danger btn-sm" onclick="clearCurrentAnnotations()" title="清除当前图片标注">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="saveAnnotations()">
+                            <i class="bi bi-check-lg"></i> 保存
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧面板 - 标注信息 -->
+            <div class="right-panel" id="rightPanel">
+                <!-- 折叠按钮 -->
+                <div class="panel-collapse-btn right" id="rightToggleBtn" onclick="toggleRightPanel()" title="折叠面板">
+                    <i class="bi bi-chevron-double-right"></i>
+                </div>
+                <!-- 类别管理 -->
+                <div class="panel-section">
+                    <h6><i class="bi bi-tags"></i> 类别管理</h6>
+                    <div class="input-group input-group-sm mb-2">
+                        <input type="text" class="form-control" id="newClassName"
+                               placeholder="新类别名称">
+                        <button class="btn btn-outline-primary" onclick="addClass()">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                    <div id="classList" class="class-list">
+                        <!-- 类别列表 -->
+                    </div>
+                </div>
+
+                <!-- 文本分割（合并单张和批量） -->
+                <div class="panel-section">
+                    <h6><i class="bi bi-cpu"></i> 文本分割</h6>
+                    <div class="input-group input-group-sm mb-2">
+                        <input type="text" class="form-control" id="textPrompt"
+                               placeholder="输入提示词 (如: apple, car)">
+                        <button class="btn btn-primary" onclick="segmentByText()" title="分割当前图片">
+                            <i class="bi bi-play-fill"></i>
+                        </button>
+                    </div>
+
+                    <!-- 批量选项折叠区 -->
+                    <div class="batch-toggle" onclick="toggleBatchOptions()">
+                        <i class="bi bi-chevron-right" id="batchToggleIcon"></i>
+                        <span>批量分割选项</span>
+                    </div>
+                    <div id="batchOptions" class="batch-options" style="display: none;">
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label small text-muted mb-1">从第几张</label>
+                                <input type="number" class="form-control form-control-sm"
+                                       id="batchStart" placeholder="0" min="0" value="0">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small text-muted mb-1">到第几张</label>
+                                <input type="number" class="form-control form-control-sm"
+                                       id="batchEnd" placeholder="-1=全部" value="-1">
+                            </div>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="skipAnnotated" checked>
+                            <label class="form-check-label small" for="skipAnnotated">
+                                跳过已标注的图片
+                            </label>
+                        </div>
+                        <button class="btn btn-warning btn-sm w-100" onclick="batchSegment()">
+                            <i class="bi bi-lightning-charge"></i> 批量分割
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 当前标注列表 -->
+                <div class="panel-section flex-grow-1">
+                    <h6><i class="bi bi-list-check"></i> 当前标注</h6>
+                    <div id="annotationList" class="annotation-list">
+                        <!-- 标注列表 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 项目管理模态框 -->
+    <div class="modal fade" id="projectModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">项目管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs" id="projectTabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#newProject">新建项目</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#existingProjects">已有项目</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content mt-3">
+                        <div class="tab-pane fade show active" id="newProject">
+                            <div class="mb-3">
+                                <label class="form-label">项目名称</label>
+                                <input type="text" class="form-control" id="newProjectName"
+                                       placeholder="我的标注项目">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">图片目录</label>
+                                <input type="text" class="form-control" id="newProjectImageDir"
+                                       placeholder="C:\path\to\images">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">输出目录</label>
+                                <input type="text" class="form-control" id="newProjectOutputDir"
+                                       placeholder="C:\path\to\output">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">初始类别（逗号分隔）</label>
+                                <input type="text" class="form-control" id="newProjectClasses"
+                                       placeholder="person, car, dog">
+                            </div>
+                            <button class="btn btn-primary" onclick="createProject()">
+                                <i class="bi bi-plus-circle"></i> 创建项目
+                            </button>
+                        </div>
+                        <div class="tab-pane fade" id="existingProjects">
+                            <div id="projectList" class="list-group">
+                                <!-- 项目列表 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导出模态框 -->
+    <div class="modal fade" id="exportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">导出数据集</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">导出格式</label>
+                        <select class="form-select" id="exportFormat">
+                            <option value="yolo">YOLO (检测+分割)</option>
+                            <option value="coco">COCO (实例分割)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">输出目录</label>
+                        <input type="text" class="form-control" id="exportOutputDir"
+                               placeholder="C:\path\to\export">
+                    </div>
+                    <div class="alert alert-info small">
+                        <i class="bi bi-info-circle"></i>
+                        数据将自动按 8:1:1 比例分割为 train/val/test
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="exportDataset()">
+                        <i class="bi bi-download"></i> 导出
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI翻译配置模态框 -->
+    <div class="modal fade" id="aiConfigModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-translate me-2"></i>AI翻译配置</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info small mb-3">
+                        <i class="bi bi-info-circle"></i>
+                        配置AI API后，中文提示词将自动翻译成英文以提高SAM3识别准确率。
+                        支持OpenAI格式的第三方API（如DeepSeek、通义千问、Moonshot等）。
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">启用AI翻译</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="aiTranslateEnabled">
+                            <label class="form-check-label" for="aiTranslateEnabled">
+                                <span id="aiStatusText">未配置</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">API地址 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="aiApiUrl"
+                               placeholder="https://api.deepseek.com">
+                        <div class="form-text">输入API基础地址，系统会自动补全路径</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">API密钥 <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="aiApiKey"
+                                   placeholder="sk-xxxxxxxxxxxxxxxx">
+                            <button class="btn btn-outline-secondary" type="button" onclick="toggleApiKeyVisibility()">
+                                <i class="bi bi-eye" id="apiKeyEyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">模型名称</label>
+                        <input type="text" class="form-control" id="aiModel"
+                               placeholder="deepseek-chat" value="deepseek-chat">
+                        <div class="form-text">常用模型：deepseek-chat, gpt-3.5-turbo, qwen-turbo</div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-primary flex-grow-1" onclick="testAIConfig()">
+                            <i class="bi bi-lightning"></i> 测试连接
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="clearAIConfig()">
+                            <i class="bi bi-trash"></i> 清除
+                        </button>
+                    </div>
+
+                    <div id="aiTestResult" class="mt-3" style="display: none;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAIConfig()">
+                        <i class="bi bi-check-lg"></i> 保存配置
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div class="toast-container position-fixed top-0 start-0 p-3" style="z-index: 9999; margin-top: 10px; margin-left: 290px;">
+        <div id="toast" class="toast cyber-toast" role="alert">
+            <div class="toast-header">
+                <i class="bi bi-cpu me-2 toast-icon"></i>
+                <strong class="me-auto" id="toastTitle">通知</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastBody"></div>
+        </div>
+    </div>
+
+    <!-- 加载状态遮罩 -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">加载中...</span>
+            </div>
+            <p id="loadingText">正在处理...</p>
+            <div class="progress-container">
+                <div class="progress-bar" id="loadingProgress" style="width: 0%"></div>
+            </div>
+            <div class="progress-text" id="loadingProgressText">0%</div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/annotation.js"></script>
+</body>
+</html>

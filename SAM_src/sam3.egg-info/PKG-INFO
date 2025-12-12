@@ -1,0 +1,525 @@
+Metadata-Version: 2.4
+Name: sam3
+Version: 0.1.0
+Summary: SAM3 (Segment Anything Model 3) implementation
+Author: Meta AI Research
+License: SAM License
+        Last Updated: November 19, 2025
+        
+        “Agreement” means the terms and conditions for use, reproduction, distribution and modification of the SAM Materials set forth herein.
+        
+        
+        “SAM Materials” means, collectively, Documentation and the models, software and algorithms, including machine-learning model code, trained model weights, inference-enabling code, training-enabling code, fine-tuning enabling code, and other elements of the foregoing distributed by Meta and made available under this Agreement.
+        
+        “Documentation” means the specifications, manuals and documentation accompanying
+        SAM Materials distributed by Meta.
+        
+        
+        “Licensee” or “you” means you, or your employer or any other person or entity (if you are entering into this Agreement on such person or entity’s behalf), of the age required under applicable laws, rules or regulations to provide legal consent and that has legal authority to bind your employer or such other person or entity if you are entering in this Agreement on their behalf.
+        
+        
+        “Meta” or “we” means Meta Platforms Ireland Limited (if you are located in or, if you are an entity, your principal place of business is in the EEA or Switzerland) or Meta Platforms, Inc. (if you are located outside of the EEA or Switzerland).
+        
+        
+        “Sanctions” means any economic or trade sanctions or restrictions administered or enforced by the United States (including the Office of Foreign Assets Control of the U.S. Department of the Treasury (“OFAC”), the U.S. Department of State and the U.S. Department of Commerce), the United Nations, the European Union, or the United Kingdom.
+        
+        
+        “Trade Controls” means any of the following: Sanctions and applicable export and import controls.
+        
+        By using or distributing any portion or element of the SAM Materials, you agree to be bound by this Agreement.
+        
+        
+        1. License Rights and Redistribution.
+        
+        
+        a. Grant of Rights. You are granted a non-exclusive, worldwide, non-transferable and royalty-free limited license under Meta’s intellectual property or other rights owned by Meta embodied in the SAM Materials to use, reproduce, distribute, copy, create derivative works of, and make modifications to the SAM Materials.
+        
+        b. Redistribution and Use.
+        i. Distribution of SAM Materials, and any derivative works thereof, are subject to the terms of this Agreement. If you distribute or make the SAM Materials, or any derivative works thereof, available to a third party, you may only do so under the terms of this Agreement and you shall provide a copy of this Agreement with any such SAM Materials.
+        
+        
+        ii.  If you submit for publication the results of research you perform on, using, or otherwise in connection with SAM Materials, you must acknowledge the use of SAM Materials in your publication.
+        
+        
+        iii. Your use of the SAM Materials must comply with applicable laws and regulations, including Trade Control Laws and applicable privacy and data protection laws.
+        iv. Your use of the SAM Materials will not involve or encourage others to reverse engineer, decompile or discover the underlying components of the SAM Materials.
+        v. You are not the target of Trade Controls and your use of SAM Materials must comply with Trade Controls. You agree not to use, or permit others to use, SAM Materials for any activities subject to the International Traffic in Arms Regulations (ITAR) or end uses prohibited by Trade Controls, including those related to military or warfare purposes, nuclear industries or applications, espionage, or the development or use of guns or illegal weapons.
+        2. User Support. Your use of the SAM Materials is done at your own discretion; Meta does not process any information nor provide any service in relation to such use.  Meta is under no obligation to provide any support services for the SAM Materials. Any support provided is “as is”, “with all faults”, and without warranty of any kind.
+        
+        
+        3. Disclaimer of Warranty. UNLESS REQUIRED BY APPLICABLE LAW, THE SAM MATERIALS AND ANY OUTPUT AND RESULTS THEREFROM ARE PROVIDED ON AN “AS IS” BASIS, WITHOUT WARRANTIES OF ANY KIND, AND META DISCLAIMS ALL WARRANTIES OF ANY KIND, BOTH EXPRESS AND IMPLIED, INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE. YOU ARE SOLELY RESPONSIBLE FOR DETERMINING THE APPROPRIATENESS OF USING OR REDISTRIBUTING THE SAM MATERIALS AND ASSUME ANY RISKS ASSOCIATED WITH YOUR USE OF THE SAM MATERIALS AND ANY OUTPUT AND RESULTS.
+        
+        4. Limitation of Liability. IN NO EVENT WILL META OR ITS AFFILIATES BE LIABLE UNDER ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, TORT, NEGLIGENCE, PRODUCTS LIABILITY, OR OTHERWISE, ARISING OUT OF THIS AGREEMENT, FOR ANY LOST PROFITS OR ANY DIRECT OR INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL, EXEMPLARY OR PUNITIVE DAMAGES, EVEN IF META OR ITS AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF ANY OF THE FOREGOING.
+        
+        5. Intellectual Property.
+        
+        
+        a. Subject to Meta’s ownership of SAM Materials and derivatives made by or for Meta, with respect to any derivative works and modifications of the SAM Materials that are made by you, as between you and Meta, you are and will be the owner of such derivative works and modifications.
+        
+        b. If you institute litigation or other proceedings against Meta or any entity (including a cross-claim or counterclaim in a lawsuit) alleging that the SAM Materials, outputs or results, or any portion of any of the foregoing, constitutes infringement of intellectual property or other rights owned or licensable by you, then any licenses granted to you under this Agreement shall terminate as of the date such litigation or claim is filed or instituted. You will indemnify and hold harmless Meta from and against any claim by any third party arising out of or related to your use or distribution of the SAM Materials.
+        
+        6. Term and Termination. The term of this Agreement will commence upon your acceptance of this Agreement or access to the SAM Materials and will continue in full force and effect until terminated in accordance with the terms and conditions herein. Meta may terminate this Agreement if you are in breach of any term or condition of this Agreement. Upon termination of this Agreement, you shall delete and cease use of the SAM Materials. Sections 3, 4 and 7 shall survive the termination of this Agreement.
+        
+        7. Governing Law and Jurisdiction. This Agreement will be governed and construed under the laws of the State of California without regard to choice of law principles, and the UN Convention on Contracts for the International Sale of Goods does not apply to this Agreement. The courts of California shall have exclusive jurisdiction of any dispute arising out of this Agreement.
+        
+        
+        8. Modifications and Amendments. Meta may modify this Agreement from time to time; provided that they are similar in spirit to the current version of the Agreement, but may differ in detail to address new problems or concerns. All such changes will be effective immediately. Your continued use of the SAM Materials after any modification to this Agreement constitutes your agreement to such modification. Except as provided in this Agreement, no modification or addition to any provision of this Agreement will be binding unless it is in writing and signed by an authorized representative of both you and Meta.
+        
+Project-URL: Homepage, https://github.com/facebookresearch/sam3
+Project-URL: Bug Tracker, https://github.com/facebookresearch/sam3/issues
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: timm>=1.0.17
+Requires-Dist: numpy==1.26
+Requires-Dist: tqdm
+Requires-Dist: ftfy==6.1.1
+Requires-Dist: regex
+Requires-Dist: iopath>=0.1.10
+Requires-Dist: typing_extensions
+Requires-Dist: huggingface_hub
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-cov; extra == "dev"
+Requires-Dist: black==24.2.0; extra == "dev"
+Requires-Dist: ufmt==2.8.0; extra == "dev"
+Requires-Dist: ruff-api==0.1.0; extra == "dev"
+Requires-Dist: usort==1.0.2; extra == "dev"
+Requires-Dist: gitpython==3.1.31; extra == "dev"
+Requires-Dist: yt-dlp; extra == "dev"
+Requires-Dist: pandas; extra == "dev"
+Requires-Dist: opencv-python; extra == "dev"
+Requires-Dist: pycocotools; extra == "dev"
+Requires-Dist: numba; extra == "dev"
+Requires-Dist: python-rapidjson; extra == "dev"
+Provides-Extra: notebooks
+Requires-Dist: matplotlib; extra == "notebooks"
+Requires-Dist: jupyter; extra == "notebooks"
+Requires-Dist: notebook; extra == "notebooks"
+Requires-Dist: ipywidgets; extra == "notebooks"
+Requires-Dist: ipycanvas; extra == "notebooks"
+Requires-Dist: ipympl; extra == "notebooks"
+Requires-Dist: pycocotools; extra == "notebooks"
+Requires-Dist: decord; extra == "notebooks"
+Requires-Dist: opencv-python; extra == "notebooks"
+Requires-Dist: einops; extra == "notebooks"
+Requires-Dist: scikit-image; extra == "notebooks"
+Requires-Dist: scikit-learn; extra == "notebooks"
+Provides-Extra: train
+Requires-Dist: hydra-core; extra == "train"
+Requires-Dist: submitit; extra == "train"
+Requires-Dist: tensorboard; extra == "train"
+Requires-Dist: zstandard; extra == "train"
+Requires-Dist: scipy; extra == "train"
+Requires-Dist: torchmetrics; extra == "train"
+Requires-Dist: fvcore; extra == "train"
+Requires-Dist: fairscale; extra == "train"
+Requires-Dist: scikit-image; extra == "train"
+Requires-Dist: scikit-learn; extra == "train"
+Dynamic: license-file
+
+# SAM 3: Segment Anything with Concepts
+
+Meta Superintelligence Labs
+
+[Nicolas Carion](https://www.nicolascarion.com/)\*,
+[Laura Gustafson](https://scholar.google.com/citations?user=c8IpF9gAAAAJ&hl=en)\*,
+[Yuan-Ting Hu](https://scholar.google.com/citations?user=E8DVVYQAAAAJ&hl=en)\*,
+[Shoubhik Debnath](https://scholar.google.com/citations?user=fb6FOfsAAAAJ&hl=en)\*,
+[Ronghang Hu](https://ronghanghu.com/)\*,
+[Didac Suris](https://www.didacsuris.com/)\*,
+[Chaitanya Ryali](https://scholar.google.com/citations?user=4LWx24UAAAAJ&hl=en)\*,
+[Kalyan Vasudev Alwala](https://scholar.google.co.in/citations?user=m34oaWEAAAAJ&hl=en)\*,
+[Haitham Khedr](https://hkhedr.com/)\*, Andrew Huang,
+[Jie Lei](https://jayleicn.github.io/),
+[Tengyu Ma](https://scholar.google.com/citations?user=VeTSl0wAAAAJ&hl=en),
+[Baishan Guo](https://scholar.google.com/citations?user=BC5wDu8AAAAJ&hl=en),
+Arpit Kalla, [Markus Marks](https://damaggu.github.io/),
+[Joseph Greer](https://scholar.google.com/citations?user=guL96CkAAAAJ&hl=en),
+Meng Wang, [Peize Sun](https://peizesun.github.io/),
+[Roman Rädle](https://scholar.google.com/citations?user=Tpt57v0AAAAJ&hl=en),
+[Triantafyllos Afouras](https://www.robots.ox.ac.uk/~afourast/),
+[Effrosyni Mavroudi](https://scholar.google.com/citations?user=vYRzGGEAAAAJ&hl=en),
+[Katherine Xu](https://k8xu.github.io/)°,
+[Tsung-Han Wu](https://patrickthwu.com/)°,
+[Yu Zhou](https://yu-bryan-zhou.github.io/)°,
+[Liliane Momeni](https://scholar.google.com/citations?user=Lb-KgVYAAAAJ&hl=en)°,
+[Rishi Hazra](https://rishihazra.github.io/)°,
+[Shuangrui Ding](https://mark12ding.github.io/)°,
+[Sagar Vaze](https://sgvaze.github.io/)°,
+[Francois Porcher](https://scholar.google.com/citations?user=LgHZ8hUAAAAJ&hl=en)°,
+[Feng Li](https://fengli-ust.github.io/)°,
+[Siyuan Li](https://siyuanliii.github.io/)°,
+[Aishwarya Kamath](https://ashkamath.github.io/)°,
+[Ho Kei Cheng](https://hkchengrex.com/)°,
+[Piotr Dollar](https://pdollar.github.io/)†,
+[Nikhila Ravi](https://nikhilaravi.com/)†,
+[Kate Saenko](https://ai.bu.edu/ksaenko.html)†,
+[Pengchuan Zhang](https://pzzhang.github.io/pzzhang/)†,
+[Christoph Feichtenhofer](https://feichtenhofer.github.io/)†
+
+\* core contributor, ° intern, † project lead, order is random within groups
+
+[[`Paper`](https://ai.meta.com/research/publications/sam-3-segment-anything-with-concepts/)]
+[[`Project`](https://ai.meta.com/sam3)]
+[[`Demo`](https://segment-anything.com/)]
+[[`Blog`](https://ai.meta.com/blog/segment-anything-model-3/)]
+[[`BibTeX`](#citing-sam-3)]
+
+![SAM 3 architecture](assets/model_diagram.png?raw=true) SAM 3 is a unified foundation model for promptable segmentation in images and videos. It can detect, segment, and track objects using text or visual prompts such as points, boxes, and masks. Compared to its predecessor [SAM 2](https://github.com/facebookresearch/sam2), SAM 3 introduces the ability to exhaustively segment all instances of an open-vocabulary concept specified by a short text phrase or exemplars. Unlike prior work, SAM 3 can handle a vastly larger set of open-vocabulary prompts. It achieves 75-80% of human performance on our new [SA-CO benchmark](https://github.com/facebookresearch/sam3?tab=readme-ov-file#sa-co-dataset) which contains 270K unique concepts, over 50 times more than existing benchmarks.
+
+This breakthrough is driven by an innovative data engine that has automatically annotated over 4 million unique concepts, creating the largest high-quality open-vocabulary segmentation dataset to date. In addition, SAM 3 introduces a new model architecture featuring a presence token that improves discrimination between closely related text prompts (e.g., “a player in white” vs. “a player in red”), as well as a decoupled detector–tracker design that minimizes task interference and scales efficiently with data.
+
+<p align="center">
+  <img src="assets/dog.gif" width=380 />
+  <img src="assets/player.gif" width=380 />
+</p>
+
+## Installation
+
+### Prerequisites
+
+- Python 3.12 or higher
+- PyTorch 2.7 or higher
+- CUDA-compatible GPU with CUDA 12.6 or higher
+
+1. **Create a new Conda environment:**
+
+```bash
+conda create -n sam3 python=3.12
+conda deactivate
+conda activate sam3
+```
+
+2. **Install PyTorch with CUDA support:**
+
+```bash
+pip install torch==2.7.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+```
+
+3. **Clone the repository and install the package:**
+
+```bash
+git clone https://github.com/facebookresearch/sam3.git
+cd sam3
+pip install -e .
+```
+
+4. **Install additional dependencies for example notebooks or development:**
+
+```bash
+# For running example notebooks
+pip install -e ".[notebooks]"
+
+# For development
+pip install -e ".[train,dev]"
+```
+
+## Getting Started
+
+⚠️ Before using SAM 3, please request access to the checkpoints on the SAM 3
+Hugging Face [repo](https://huggingface.co/facebook/sam3). Once accepted, you
+need to be authenticated to download the checkpoints. You can do this by running
+the following [steps](https://huggingface.co/docs/huggingface_hub/en/quick-start#authentication)
+(e.g. `hf auth login` after generating an access token.)
+
+### Basic Usage
+
+```python
+import torch
+#################################### For Image ####################################
+from PIL import Image
+from sam3.model_builder import build_sam3_image_model
+from sam3.model.sam3_image_processor import Sam3Processor
+# Load the model
+model = build_sam3_image_model()
+processor = Sam3Processor(model)
+# Load an image
+image = Image.open("<YOUR_IMAGE_PATH.jpg>")
+inference_state = processor.set_image(image)
+# Prompt the model with text
+output = processor.set_text_prompt(state=inference_state, prompt="<YOUR_TEXT_PROMPT>")
+
+# Get the masks, bounding boxes, and scores
+masks, boxes, scores = output["masks"], output["boxes"], output["scores"]
+
+#################################### For Video ####################################
+
+from sam3.model_builder import build_sam3_video_predictor
+
+video_predictor = build_sam3_video_predictor()
+video_path = "<YOUR_VIDEO_PATH>" # a JPEG folder or an MP4 video file
+# Start a session
+response = video_predictor.handle_request(
+    request=dict(
+        type="start_session",
+        resource_path=video_path,
+    )
+)
+response = video_predictor.handle_request(
+    request=dict(
+        type="add_prompt",
+        session_id=response["session_id"],
+        frame_index=0, # Arbitrary frame index
+        text="<YOUR_TEXT_PROMPT>",
+    )
+)
+output = response["outputs"]
+```
+
+## Examples
+
+The `examples` directory contains notebooks demonstrating how to use SAM3 with
+various types of prompts:
+
+- [`sam3_image_predictor_example.ipynb`](examples/sam3_image_predictor_example.ipynb)
+  : Demonstrates how to prompt SAM 3 with text and visual box prompts on images.
+- [`sam3_video_predictor_example.ipynb`](examples/sam3_video_predictor_example.ipynb)
+  : Demonstrates how to prompt SAM 3 with text prompts on videos, and doing
+  further interactive refinements with points.
+- [`sam3_image_batched_inference.ipynb`](examples/sam3_image_batched_inference.ipynb)
+  : Demonstrates how to run batched inference with SAM 3 on images.
+- [`sam3_agent.ipynb`](examples/sam3_agent.ipynb): Demonsterates the use of SAM
+  3 Agent to segment complex text prompt on images.
+- [`saco_gold_silver_vis_example.ipynb`](examples/saco_gold_silver_vis_example.ipynb)
+  : Shows a few examples from SA-Co image evaluation set.
+- [`saco_veval_vis_example.ipynb`](examples/saco_veval_vis_example.ipynb) :
+  Shows a few examples from SA-Co video evaluation set.
+
+There are additional notebooks in the examples directory that demonstrate how to
+use SAM 3 for interactive instance segmentation in images and videos (SAM 1/2
+tasks), or as a tool for an MLLM, and how to run evaluations on the SA-Co
+dataset.
+
+To run the Jupyter notebook examples:
+
+```bash
+# Make sure you have the notebooks dependencies installed
+pip install -e ".[notebooks]"
+
+# Start Jupyter notebook
+jupyter notebook examples/sam3_image_predictor_example.ipynb
+```
+
+## Model
+
+SAM 3 consists of a detector and a tracker that share a vision encoder. It has 848M parameters. The
+detector is a DETR-based model conditioned on text, geometry, and image
+exemplars. The tracker inherits the SAM 2 transformer encoder-decoder
+architecture, supporting video segmentation and interactive refinement.
+
+## Image Results
+
+<div align="center">
+<table style="min-width: 80%; border: 2px solid #ddd; border-collapse: collapse">
+  <thead>
+    <tr>
+      <th rowspan="3" style="border-right: 2px solid #ddd; padding: 12px 20px">Model</th>
+      <th colspan="3" style="text-align: center; border-right: 2px solid #ddd; padding: 12px 20px">Instance Segmentation</th>
+      <th colspan="5" style="text-align: center; padding: 12px 20px">Box Detection</th>
+    </tr>
+    <tr>
+      <th colspan="2" style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">LVIS</th>
+      <th style="text-align: center; border-right: 2px solid #ddd; padding: 12px 20px">SA-Co/Gold</th>
+      <th colspan="2" style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">LVIS</th>
+      <th colspan="2" style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">COCO</th>
+      <th style="text-align: center; padding: 12px 20px">SA-Co/Gold</th>
+    </tr>
+    <tr>
+      <th style="text-align: center; padding: 12px 20px">cgF1</th>
+      <th style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">AP</th>
+      <th style="text-align: center; border-right: 2px solid #ddd; padding: 12px 20px">cgF1</th>
+      <th style="text-align: center; padding: 12px 20px">cgF1</th>
+      <th style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">AP</th>
+      <th style="text-align: center; padding: 12px 20px">AP</th>
+      <th style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">AP<sub>o</sub>
+</th>
+      <th style="text-align: center; padding: 12px 20px">cgF1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border-right: 2px solid #ddd; padding: 10px 20px">Human</td>
+      <td style="text-align: center; padding: 10px 20px">-</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">-</td>
+      <td style="text-align: center; border-right: 2px solid #ddd; padding: 10px 20px">72.8</td>
+      <td style="text-align: center; padding: 10px 20px">-</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">-</td>
+      <td style="text-align: center; padding: 10px 20px">-</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">-</td>
+      <td style="text-align: center; padding: 10px 20px">74.0</td>
+    </tr>
+    <tr>
+      <td style="border-right: 2px solid #ddd; padding: 10px 20px">OWLv2*</td>
+      <td style="text-align: center; padding: 10px 20px; color: #999">29.3</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px; color: #999">43.4</td>
+      <td style="text-align: center; border-right: 2px solid #ddd; padding: 10px 20px">24.6</td>
+      <td style="text-align: center; padding: 10px 20px; color: #999">30.2</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px; color: #999">45.5</td>
+      <td style="text-align: center; padding: 10px 20px">46.1</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">23.9</td>
+      <td style="text-align: center; padding: 10px 20px">24.5</td>
+    </tr>
+    <tr>
+      <td style="border-right: 2px solid #ddd; padding: 10px 20px">DINO-X</td>
+      <td style="text-align: center; padding: 10px 20px">-</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">38.5</td>
+      <td style="text-align: center; border-right: 2px solid #ddd; padding: 10px 20px">21.3</td>
+      <td style="text-align: center; padding: 10px 20px">-</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">52.4</td>
+      <td style="text-align: center; padding: 10px 20px">56.0</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">-</td>
+      <td style="text-align: center; padding: 10px 20px">22.5</td>
+    </tr>
+    <tr>
+      <td style="border-right: 2px solid #ddd; padding: 10px 20px">Gemini 2.5</td>
+      <td style="text-align: center; padding: 10px 20px">13.4</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">-</td>
+      <td style="text-align: center; border-right: 2px solid #ddd; padding: 10px 20px">13.0</td>
+      <td style="text-align: center; padding: 10px 20px">16.1</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">-</td>
+      <td style="text-align: center; padding: 10px 20px">-</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">-</td>
+      <td style="text-align: center; padding: 10px 20px">14.4</td>
+    </tr>
+    <tr style="border-top: 2px solid #b19c9cff">
+      <td style="border-right: 2px solid #ddd; padding: 10px 20px">SAM 3</td>
+      <td style="text-align: center; padding: 10px 20px">37.2</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">48.5</td>
+      <td style="text-align: center; border-right: 2px solid #ddd; padding: 10px 20px">54.1</td>
+      <td style="text-align: center; padding: 10px 20px">40.6</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">53.6</td>
+      <td style="text-align: center; padding: 10px 20px">56.4</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">55.7</td>
+      <td style="text-align: center; padding: 10px 20px">55.7</td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="text-align: center; margin-top: 10px; font-size: 0.9em; color: #ddd;">* Partially trained on LVIS, AP<sub>o</sub> refers to COCO-O accuracy</p>
+
+</div>
+
+## Video Results
+
+<div align="center">
+<table style="min-width: 80%; border: 2px solid #ddd; border-collapse: collapse">
+  <thead>
+    <tr>
+      <th rowspan="2" style="border-right: 2px solid #ddd; padding: 12px 20px">Model</th>
+      <th colspan="2" style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">SA-V test</th>
+      <th colspan="2" style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">YT-Temporal-1B test</th>
+      <th colspan="2" style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">SmartGlasses test</th>
+      <th style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">LVVIS test</th>
+      <th style="text-align: center; padding: 12px 20px">BURST test</th>
+    </tr>
+    <tr>
+      <th style="text-align: center; padding: 12px 20px">cgF1</th>
+      <th style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">pHOTA</th>
+      <th style="text-align: center; padding: 12px 20px">cgF1</th>
+      <th style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">pHOTA</th>
+      <th style="text-align: center; padding: 12px 20px">cgF1</th>
+      <th style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">pHOTA</th>
+      <th style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">mAP</th>
+      <th style="text-align: center; padding: 12px 20px">HOTA</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border-right: 2px solid #ddd; padding: 10px 20px">Human</td>
+      <td style="text-align: center; padding: 10px 20px">53.1</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">70.5</td>
+      <td style="text-align: center; padding: 10px 20px">71.2</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">78.4</td>
+      <td style="text-align: center; padding: 10px 20px">58.5</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">72.3</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">-</td>
+      <td style="text-align: center; padding: 10px 20px">-</td>
+    </tr>
+    <tr style="border-top: 2px solid #b19c9cff">
+      <td style="border-right: 2px solid #ddd; padding: 10px 20px">SAM 3</td>
+      <td style="text-align: center; padding: 10px 20px">30.3</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">58.0</td>
+      <td style="text-align: center; padding: 10px 20px">50.8</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">69.9</td>
+      <td style="text-align: center; padding: 10px 20px">36.4</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">63.6</td>
+      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">36.3</td>
+      <td style="text-align: center; padding: 10px 20px">44.5</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+## SA-Co Dataset
+
+We release 2 image benchmarks, [SA-Co/Gold](scripts/eval/gold/README.md) and
+[SA-Co/Silver](scripts/eval/silver/README.md), and a video benchmark
+[SA-Co/VEval](scripts/eval/veval/README.md). The datasets contain images (or videos) with annotated noun phrases. Each image/video and noun phrase pair is annotated with instance masks and unique IDs of each object matching the phrase. Phrases that have no matching objects (negative prompts) have no masks, shown in red font in the figure. See the linked READMEs for more details on how to download and run evaluations on the datasets.
+
+* HuggingFace host: [SA-Co/Gold](https://huggingface.co/datasets/facebook/SACo-Gold), [SA-Co/Silver](https://huggingface.co/datasets/facebook/SACo-Silver) and [SA-Co/VEval](https://huggingface.co/datasets/facebook/SACo-VEval)
+* Roboflow host: [SA-Co/Gold](https://universe.roboflow.com/sa-co-gold), [SA-Co/Silver](https://universe.roboflow.com/sa-co-silver) and [SA-Co/VEval](https://universe.roboflow.com/sa-co-veval)
+
+![SA-Co dataset](assets/sa_co_dataset.jpg?raw=true)
+
+## Development
+
+To set up the development environment:
+
+```bash
+pip install -e ".[dev,train]"
+```
+
+To format the code:
+
+```bash
+ufmt format .
+```
+
+## Contributing
+
+See [contributing](CONTRIBUTING.md) and the
+[code of conduct](CODE_OF_CONDUCT.md).
+
+## License
+
+This project is licensed under the SAM License - see the [LICENSE](LICENSE) file
+for details.
+
+## Acknowledgements
+
+We would like to thank the following people for their contributions to the SAM 3 project: Alex He, Alexander Kirillov,
+Alyssa Newcomb, Ana Paula Kirschner Mofarrej, Andrea Madotto, Andrew Westbury, Ashley Gabriel, Azita Shokpour,
+Ben Samples, Bernie Huang, Carleigh Wood, Ching-Feng Yeh, Christian Puhrsch, Claudette Ward, Daniel Bolya,
+Daniel Li, Facundo Figueroa, Fazila Vhora, George Orlin, Hanzi Mao, Helen Klein, Hu Xu, Ida Cheng, Jake Kinney,
+Jiale Zhi, Jo Sampaio, Joel Schlosser, Justin Johnson, Kai Brown, Karen Bergan, Karla Martucci, Kenny Lehmann,
+Maddie Mintz, Mallika Malhotra, Matt Ward, Michelle Chan, Michelle Restrepo, Miranda Hartley, Muhammad Maaz,
+Nisha Deo, Peter Park, Phillip Thomas, Raghu Nayani, Rene Martinez Doehner, Robbie Adkins, Ross Girshik, Sasha
+Mitts, Shashank Jain, Spencer Whitehead, Ty Toledano, Valentin Gabeur, Vincent Cho, Vivian Lee, William Ngan,
+Xuehai He, Yael Yungster, Ziqi Pang, Ziyi Dou, Zoe Quake.
+
+## Citing SAM 3
+
+If you use SAM 3 or the SA-Co dataset in your research, please use the following BibTeX entry.
+
+```bibtex
+@misc{carion2025sam3segmentconcepts,
+      title={SAM 3: Segment Anything with Concepts},
+      author={Nicolas Carion and Laura Gustafson and Yuan-Ting Hu and Shoubhik Debnath and Ronghang Hu and Didac Suris and Chaitanya Ryali and Kalyan Vasudev Alwala and Haitham Khedr and Andrew Huang and Jie Lei and Tengyu Ma and Baishan Guo and Arpit Kalla and Markus Marks and Joseph Greer and Meng Wang and Peize Sun and Roman Rädle and Triantafyllos Afouras and Effrosyni Mavroudi and Katherine Xu and Tsung-Han Wu and Yu Zhou and Liliane Momeni and Rishi Hazra and Shuangrui Ding and Sagar Vaze and Francois Porcher and Feng Li and Siyuan Li and Aishwarya Kamath and Ho Kei Cheng and Piotr Dollár and Nikhila Ravi and Kate Saenko and Pengchuan Zhang and Christoph Feichtenhofer},
+      year={2025},
+      eprint={2511.16719},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2511.16719},
+}
+```
