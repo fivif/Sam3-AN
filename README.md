@@ -25,10 +25,9 @@
 
 ![屏幕截图 2025-12-13 170932](https://github.com/user-attachments/assets/a28c3a06-2c07-41ee-a605-ab35ef91a8ce)
 
+<img width="2559" height="1285" alt="image" src="https://github.com/user-attachments/assets/2c2e1987-c7f6-45b5-9a3b-d8e5894706e3" />
 
-<img width="1280" height="720" alt="image" src="https://github.com/user-attachments/assets/7c352b9b-fb51-44d3-a738-451ecae92eeb" />
-<img width="1280" height="720" alt="image" src="https://github.com/user-attachments/assets/44092ea3-2755-476c-82ed-036e4f154193" />
-<img width="1265" height="615" alt="image" src="https://github.com/user-attachments/assets/4da2106e-77dc-421c-945e-c42f26dff1d9" />
+
 
 ### 🎯 正负样本系统
 
@@ -202,52 +201,6 @@ annotation_tool/
 ├── SAM_src/                    # SAM3 源码（本地副本）
 
 ```
-
-## 🔌 API 接口
-
-### 项目管理
-
-```http
-POST /api/project/create        # 创建项目
-GET  /api/project/<id>          # 获取项目信息
-GET  /api/project/list          # 列出所有项目
-POST /api/project/<id>/update   # 更新项目
-POST /api/project/<id>/delete   # 删除项目
-POST /api/project/<id>/load_images  # 加载图片目录
-```
-
-### 分割
-
-```http
-POST /api/segment/text          # 文本提示分割
-POST /api/segment/point         # 点击分割
-POST /api/segment/box           # 框选分割
-POST /api/segment/batch         # 批量分割
-```
-
-### 标注管理
-
-```http
-POST /api/annotation/save       # 保存标注
-GET  /api/annotation/get        # 获取标注
-POST /api/annotation/update     # 更新标注
-POST /api/annotation/delete     # 删除标注
-```
-
-### 导出
-
-```http
-POST /api/export/yolo           # 导出 YOLO 格式
-POST /api/export/coco           # 导出 COCO 格式
-```
-
-### AI 翻译
-
-```http
-POST /api/ai/translate          # 翻译文本
-POST /api/ai/test               # 测试 API 配置
-```
-
 
 ## ⚙️ 配置说明
 

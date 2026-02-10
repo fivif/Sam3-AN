@@ -1,11 +1,7 @@
-"""
-YOLO格式导出器
-支持YOLOv5/v8检测和分割格式
-"""
 import os
 import shutil
 from pathlib import Path
-from PIL import Image
+from PIL import Image, ImageOps
 import yaml
 import numpy as np
 import cv2
@@ -23,6 +19,7 @@ class YOLOExporter:
             'high': {'kernel_size': 7, 'simplify_epsilon': 0.0008},
             'ultra': {'kernel_size': 11, 'simplify_epsilon': 0.0005},
         }
+        self.format_type = 'segment'  # 默认导出类型
 
     def _smooth_polygon_via_mask(self, polygon: list, kernel_size: int) -> np.ndarray:
         """通过渲染到mask再提取的方式平滑多边形（最有效的方法）
@@ -133,6 +130,7 @@ class YOLOExporter:
             导出结果统计
         """
         self.current_smooth_level = smooth_level
+        self.format_type = format_type  # 保存导出类型
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
 
@@ -166,7 +164,7 @@ class YOLOExporter:
             for img_info in split_images:
                 result = self._export_image(
                     img_info, output_path, split_name,
-                    class_to_id, format_type
+                    class_to_id
                 )
                 if result:
                     stats[split_name] += 1
@@ -190,7 +188,7 @@ class YOLOExporter:
         return sorted(list(classes))
 
     def _export_image(self, img_info: dict, output_path: Path,
-                      split: str, class_to_id: dict, format_type: str) -> int:
+                      split: str, class_to_id: dict) -> int:
         """导出单张图片"""
         src_path = img_info.get('path')
         if not src_path or not os.path.exists(src_path):
@@ -205,6 +203,8 @@ class YOLOExporter:
 
         # 获取图片尺寸
         with Image.open(src_path) as img:
+            # 处理 EXIF 旋转信息
+            img = ImageOps.exif_transpose(img)
             img_width, img_height = img.size
 
         # 生成标签文件
@@ -219,7 +219,7 @@ class YOLOExporter:
             class_name = ann.get('class_name') or ann.get('label', 'object')
             class_id = class_to_id.get(class_name, 0)
 
-            if format_type == 'segment' and ann.get('polygon'):
+            if self.format_type == 'segment' and ann.get('polygon'):
                 # 分割格式: class_id x1 y1 x2 y2 ... xn yn (归一化)
                 polygon = ann['polygon']
                 if len(polygon) >= 3:

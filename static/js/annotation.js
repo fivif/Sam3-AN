@@ -2052,6 +2052,7 @@ async function exportDataset() {
     const format = document.getElementById('exportFormat').value;
     const outputDir = document.getElementById('exportOutputDir').value.trim();
     const smoothLevel = document.getElementById('exportSmoothLevel').value;
+    const exportType = document.getElementById('exportType').value;
 
     if (!outputDir) {
         showToast('提示', '请输入输出目录');
@@ -2067,7 +2068,8 @@ async function exportDataset() {
             body: JSON.stringify({
                 project_id: state.projectId,
                 output_dir: outputDir,
-                smooth_level: smoothLevel
+                smooth_level: smoothLevel,
+                export_type: exportType
             })
         });
 

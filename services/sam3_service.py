@@ -5,7 +5,7 @@ import os
 import sys
 from pathlib import Path
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 import torch
 import uuid
 import traceback
@@ -50,7 +50,10 @@ class SAM3Service:
         """加载图像"""
         if self.current_image_path != image_path or self.inference_state is None:
             print(f"[DEBUG] 加载图像: {image_path}")
-            image = Image.open(image_path).convert('RGB')
+            image = Image.open(image_path)
+            # 处理 EXIF 旋转信息，修复竖屏图像分割偏移问题
+            image = ImageOps.exif_transpose(image)
+            image = image.convert('RGB')
             self._image_size = image.size
             self.inference_state = self.image_processor.set_image(image)
             self.current_image_path = image_path

@@ -338,9 +338,17 @@
                             <div class="mb-3">
                                 <label class="form-label">导出格式</label>
                                 <select class="form-select" id="exportFormat">
-                                    <option value="yolo">YOLO (检测+分割)</option>
-                                    <option value="coco">COCO (实例分割)</option>
+                                    <option value="yolo">YOLO</option>
+                                    <option value="coco">COCO</option>
                                 </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">导出类型</label>
+                                <select class="form-select" id="exportType">
+                                    <option value="segment">实例分割 (Polygon)</option>
+                                    <option value="detect">目标检测 (BBox)</option>
+                                </select>
+                                <div class="form-text">分割包含完整轮廓，检测仅包含边界框</div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">输出目录</label>

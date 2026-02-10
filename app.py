@@ -1,7 +1,3 @@
-"""
-SAM3 数据标注工具 - Flask Web应用
-支持点标注、框选、文本提示分割，以及视频分割
-"""
 import os
 import sys
 import subprocess
@@ -414,6 +410,7 @@ def export_yolo():
     project_id = data.get('project_id')
     output_dir = data.get('output_dir', '')
     smooth_level = data.get('smooth_level', 'medium')
+    export_type = data.get('export_type', 'segment')  # 'detect' 或 'segment'
 
     try:
         project = annotation_manager.get_project(project_id)
@@ -421,7 +418,11 @@ def export_yolo():
             return jsonify({'success': False, 'error': '项目不存在'})
 
         exporter = YOLOExporter()
-        result = exporter.export(project, output_dir, smooth_level=smooth_level)
+        result = exporter.export(
+            project, output_dir, 
+            format_type=export_type,
+            smooth_level=smooth_level
+        )
         return jsonify({'success': True, 'result': result})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -434,6 +435,7 @@ def export_coco():
     project_id = data.get('project_id')
     output_dir = data.get('output_dir', '')
     smooth_level = data.get('smooth_level', 'medium')
+    export_type = data.get('export_type', 'segment')  # 'detect' 或 'segment'
 
     try:
         project = annotation_manager.get_project(project_id)
@@ -441,7 +443,11 @@ def export_coco():
             return jsonify({'success': False, 'error': '项目不存在'})
 
         exporter = COCOExporter()
-        result = exporter.export(project, output_dir, smooth_level=smooth_level)
+        result = exporter.export(
+            project, output_dir,
+            export_type=export_type,
+            smooth_level=smooth_level
+        )
         return jsonify({'success': True, 'result': result})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})

@@ -7,7 +7,7 @@ import json
 import shutil
 from pathlib import Path
 from datetime import datetime
-from PIL import Image
+from PIL import Image, ImageOps
 import numpy as np
 import cv2
 
@@ -24,6 +24,7 @@ class COCOExporter:
             'high': {'kernel_size': 7, 'simplify_epsilon': 0.0008},
             'ultra': {'kernel_size': 11, 'simplify_epsilon': 0.0005},
         }
+        self.export_type = 'segment'  # 默认导出类型
 
     def _smooth_polygon_via_mask(self, polygon: list, kernel_size: int) -> np.ndarray:
         """通过渲染到mask再提取的方式平滑多边形"""
@@ -90,6 +91,7 @@ class COCOExporter:
         return result.tolist()
 
     def export(self, project: dict, output_dir: str,
+               export_type: str = 'segment',
                split_ratio: tuple = (0.8, 0.1, 0.1),
                smooth_level: str = 'medium') -> dict:
         """
@@ -98,6 +100,7 @@ class COCOExporter:
         Args:
             project: 项目数据
             output_dir: 输出目录
+            export_type: 'detect' 仅边界框 或 'segment' 实例分割
             split_ratio: (train, val, test) 比例
             smooth_level: 多边形平滑级别 'none', 'low', 'medium', 'high', 'ultra'
 
@@ -105,6 +108,7 @@ class COCOExporter:
             导出结果统计
         """
         self.current_smooth_level = smooth_level
+        self.export_type = export_type
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
 
@@ -136,7 +140,7 @@ class COCOExporter:
         for split_name, split_images in splits.items():
             coco_data = self._create_coco_structure(project, classes)
             ann_count = self._export_split(
-                split_images, output_path, split_name, coco_data, classes
+                split_images, output_path, split_name, coco_data, classes, export_type
             )
 
             # 保存COCO JSON
@@ -186,7 +190,8 @@ class COCOExporter:
         }
 
     def _export_split(self, images: list, output_path: Path,
-                      split: str, coco_data: dict, classes: list) -> int:
+                      split: str, coco_data: dict, classes: list,
+                      export_type: str = 'segment') -> int:
         """导出单个数据集分割"""
         class_to_id = {cls: i + 1 for i, cls in enumerate(classes)}
         annotation_id = 1
@@ -206,6 +211,8 @@ class COCOExporter:
 
             # 获取图片信息
             with Image.open(src_path) as img:
+                # 处理 EXIF 旋转信息
+                img = ImageOps.exif_transpose(img)
                 img_width, img_height = img.size
 
             # 添加图片信息
@@ -229,33 +236,38 @@ class COCOExporter:
                     'iscrowd': 0
                 }
 
-                # 处理分割
-                polygon = ann.get('polygon', [])
-                if polygon and len(polygon) >= 3:
-                    # 应用平滑处理
-                    smoothed_polygon = self.smooth_polygon(polygon, self.current_smooth_level)
-                    # 转换为COCO格式 [x1, y1, x2, y2, ...]
-                    segmentation = []
-                    for point in smoothed_polygon:
-                        segmentation.extend([float(point[0]), float(point[1])])
-                    coco_ann['segmentation'] = [segmentation]
+                # 根据导出类型处理分割或检测
+                if export_type == 'segment' and ann.get('polygon'):
+                    # 分割格式：包含完整多边形轮廓
+                    polygon = ann['polygon']
+                    if len(polygon) >= 3:
+                        # 应用平滑处理
+                        smoothed_polygon = self.smooth_polygon(polygon, self.current_smooth_level)
+                        # 转换为COCO格式 [x1, y1, x2, y2, ...]
+                        segmentation = []
+                        for point in smoothed_polygon:
+                            segmentation.extend([float(point[0]), float(point[1])])
+                        coco_ann['segmentation'] = [segmentation]
 
-                    # 计算bbox
-                    xs = [p[0] for p in polygon]
-                    ys = [p[1] for p in polygon]
-                    x_min, x_max = min(xs), max(xs)
-                    y_min, y_max = min(ys), max(ys)
-                    coco_ann['bbox'] = [x_min, y_min, x_max - x_min, y_max - y_min]
-                    coco_ann['area'] = (x_max - x_min) * (y_max - y_min)
-                elif ann.get('bbox'):
-                    # 只有bbox
-                    bbox = ann['bbox']
-                    x1, y1, x2, y2 = bbox[:4]
-                    coco_ann['bbox'] = [x1, y1, x2 - x1, y2 - y1]
-                    coco_ann['area'] = (x2 - x1) * (y2 - y1)
-                    coco_ann['segmentation'] = []
+                        # 计算bbox
+                        xs = [p[0] for p in polygon]
+                        ys = [p[1] for p in polygon]
+                        x_min, x_max = min(xs), max(xs)
+                        y_min, y_max = min(ys), max(ys)
+                        coco_ann['bbox'] = [x_min, y_min, x_max - x_min, y_max - y_min]
+                        coco_ann['area'] = (x_max - x_min) * (y_max - y_min)
+                    else:
+                        continue
                 else:
-                    continue
+                    # 检测格式：仅包含边界框
+                    bbox = ann.get('bbox')
+                    if bbox and len(bbox) >= 4:
+                        x1, y1, x2, y2 = bbox[:4]
+                        coco_ann['bbox'] = [x1, y1, x2 - x1, y2 - y1]
+                        coco_ann['area'] = (x2 - x1) * (y2 - y1)
+                        coco_ann['segmentation'] = []
+                    else:
+                        continue
 
                 coco_data['annotations'].append(coco_ann)
                 annotation_id += 1
