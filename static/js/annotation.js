@@ -1407,6 +1407,14 @@ async function batchSegment() {
         showLoading(`正在处理: ${img.filename} (${i + 1}/${toProcessList.length})`, progress);
 
         try {
+            const respAnnotation = await fetch("/api/annotation/get?project_id="+encodeURIComponent(state.projectId)+"&image_index="+imgIndex, 
+            {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data1 = await respAnnotation.json();
+            const currentAnnotation = data1.annotations;
+                console.log(currentAnnotation)
             const response = await fetch('/api/segment/text', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1421,7 +1429,8 @@ async function batchSegment() {
             if (data.success && data.results && data.results.length > 0) {
                 // 设置类名
                 data.results.forEach(r => r.class_name = className);
-
+                data.results = data.results.concat(currentAnnotation)
+                console.log(data.results)
                 // 保存标注
                 await fetch('/api/annotation/save', {
                     method: 'POST',

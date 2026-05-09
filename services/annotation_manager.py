@@ -4,11 +4,12 @@
 """
 import os
 import json
+import orjson
 from pathlib import Path
 from datetime import datetime
 import uuid
 import threading
-
+import time
 
 class AnnotationManager:
     """标注数据管理器"""
@@ -23,22 +24,35 @@ class AnnotationManager:
         self._lock = threading.Lock()
         self._load_all_projects()
 
+        self.thread = threading.Thread(target=self.autosave_loop, daemon=True)
+        self.thread.start()
+
+    def autosave_loop(self):
+        while True:
+            print("[AUTOSAVE] SAVING")
+            self._save_all_projects()
+            for proj_key in self.projects.keys():
+                self._save_project_annotations(proj_key)
+
+            time.sleep(60)
+
     def _load_all_projects(self):
         """加载所有项目"""
         projects_file = self.data_dir / 'projects.json'
         if projects_file.exists():
-            with open(projects_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+            with open(projects_file, 'rb') as f:
+                data = orjson.loads(f.read())
                 self.projects = {p['id']: p for p in data.get('projects', [])}
 
     def _save_all_projects(self):
         """保存所有项目"""
         projects_file = self.data_dir / 'projects.json'
-        with open(projects_file, 'w', encoding='utf-8') as f:
-            json.dump({
+        with open(projects_file, 'wb') as f:
+            f.write(orjson.dumps({
                 'projects': list(self.projects.values()),
                 'updated_at': datetime.now().isoformat()
-            }, f, ensure_ascii=False, indent=2)
+            }))
+            
 
     def create_project(self, project: dict) -> dict:
         """创建新项目"""
@@ -169,8 +183,8 @@ class AnnotationManager:
             image['annotated'] = len(annotations) > 0
 
             project['updated_at'] = datetime.now().isoformat()
-            self._save_all_projects()
-            self._save_project_annotations(project_id)
+            #self._save_all_projects()
+            #self._save_project_annotations(project_id)
 
     def get_annotations(self, project_id: str, image_index: int) -> list:
         """获取标注"""
@@ -251,13 +265,14 @@ class AnnotationManager:
         project_dir.mkdir(exist_ok=True)
 
         annotations_file = project_dir / 'annotations.json'
-        with open(annotations_file, 'w', encoding='utf-8') as f:
-            json.dump({
+        with open(annotations_file, 'wb') as f:
+            f.write(
+            orjson.dumps({
                 'project_id': project_id,
                 'images': project.get('images', []),
                 'classes': project.get('classes', []),
                 'updated_at': datetime.now().isoformat()
-            }, f, ensure_ascii=False, indent=2)
+            }))
 
     def mark_image_annotated(self, project_id: str, image_index: int, annotated: bool = True):
         """标记图片为已标注/未标注"""
